@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ishaare - Ishaaro se shabad tak ka fasla</title>
+  
+  <!-- Google Fonts: Outfit for heading, Inter for UI text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+</head>
+<body>
+  <!-- Model Download Toast (Global) -->
+  <div class="model-download-toast" id="modelDownloadToast" style="display: none;">
+    <i class="fa-solid fa-cloud-arrow-down fa-bounce"></i>
+    <div class="toast-content">
+      <div class="toast-title">Downloading AI Model</div>
+      <div class="toast-message" id="modelDownloadMessage">Initializing (~15MB)...</div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="pulse-indicator status-idle" id="statusIndicator"></div>
+        <h1>Ishaare</h1>
+      </div>
+      <p class="subtitle">Ishaaro se shabad tak ka fasla</p>
+    </header>
+
+    <main class="app-content">
+      <!-- Left side: Camera Viewport -->
+      <section class="viewport-section">
+        <div class="glass-card camera-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-camera"></i> Live Camera Input</h3>
+            <div class="camera-actions">
+              <!-- Letters Only Filter Toggle -->
+              <button id="lettersModeBtn" class="btn btn-secondary letters-mode-btn" title="Only guess letters (ignore phrases)">
+                <i class="fa-solid fa-filter"></i>
+                <span>Letters Only</span>
+              </button>
+              <!-- Sentence Mode Toggle -->
+              <button id="sentenceModeBtn" class="btn btn-secondary sentence-mode-btn" title="Toggle Sentence Mode">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Sentence</span>
+              </button>
+              <!-- Training Mode Toggle -->
+              <button id="trainingModeBtn" class="btn btn-secondary training-mode-btn" title="Toggle Training Mode">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>Train</span>
+              </button>
+              <button id="toggleCameraBtn" class="btn btn-secondary btn-icon" title="Flip Camera">
+                <i class="fa-solid fa-camera-rotate"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="video-container">
+            <video id="webcam" autoplay playsinline muted></video>
+            <canvas id="output_canvas"></canvas>
+            
+            <!-- Loading overlay -->
+            <div class="overlay-screen" id="loadingScreen">
+              <div class="spinner"></div>
+              <p id="loadingText">Initializing Camera...</p>
+            </div>
+            
+            <!-- Detection overlay text -->
+            <div class="gesture-hud" id="gestureHud">
+              <span class="hud-label">DETECTED SIGN</span>
+              <span class="hud-value" id="hudGestureValue">WAITING...</span>
+              <span class="hud-confidence" id="hudConfidenceValue">--</span>
+            </div>
+
+            <!-- Camera shutter flash overlay -->
+            <div class="camera-flash" id="cameraFlash"></div>
+
+            <!-- Countdown overlay for multi-shot -->
+            <div class="overlay-screen countdown-overlay" id="countdownOverlay" style="display: none;">
+              <div class="countdown-circle-container" id="countdownCircleContainer">
+                <div class="countdown-circle">
+                  <span id="countdownNumber">3</span>
+                </div>
+              </div>
+              <p id="countdownStatus">Get ready for Shot 1 of 5</p>
+              
+              <!-- Results choice for multi-shot -->
+              <div id="multiShotChoices" class="multi-shot-choices" style="display: none;">
+                <h3><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> 5 Shots Captured!</h3>
+                <p>Do you want to save these 5 pose samples for gesture <strong id="multiShotLabelName"></strong>?</p>
+                <div class="choice-buttons">
+                  <button id="keepShotsBtn" class="btn btn-primary"><i class="fa-solid fa-check"></i> Keep Poses</button>
+                  <button id="discardShotsBtn" class="btn btn-danger"><i class="fa-solid fa-xmark"></i> Discard Poses</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Training Drawer — slides in below the video feed -->
+          <div class="training-drawer" id="trainingDrawer">
+            <div class="training-drawer-inner">
+              <div class="training-drawer-header">
+                <span><i class="fa-solid fa-graduation-cap" style="color: var(--purple-vivid);"></i> Custom Sign Trainer</span>
+                <span class="training-mode-badge">TRAINING MODE</span>
+              </div>
+
+              <p class="trainer-desc">Teach the app new signs by recording your hand pose. Enter a label and capture.</p>
+
+              <div class="trainer-form">
+                <input type="text" id="customSignLabel" class="form-input" placeholder="Enter Sign Name (e.g. Yes)">
+                <div class="trainer-buttons">
+                  <button id="recordSampleBtn" class="btn btn-secondary" disabled title="Capture a single pose immediately">
+                    <i class="fa-solid fa-circle-record"></i> Capture
+                  </button>
+                  <button id="multiShotBtn" class="btn btn-secondary" disabled title="Capture 5 poses with a 3s countdown">
+                    <i class="fa-solid fa-hourglass-start"></i> Multi-Shot (5x)
+                  </button>
+                  <button id="clearTrainedBtn" class="btn btn-danger btn-icon" title="Reset Custom Training">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="trained-signs-list">
+                <h4>Trained Letters (<span id="trainedLettersCount">0</span>)</h4>
+                <div class="trained-tags" id="trainedLettersContainer">
+                  <span class="no-tags-msg">No custom letters recorded yet.</span>
+                </div>
+                
+                <h4 style="margin-top: 12px;">Trained Phrases (<span id="trainedPhrasesCount">0</span>)</h4>
+                <div class="trained-tags" id="trainedPhrasesContainer">
+                  <span class="no-tags-msg">No custom phrases recorded yet.</span>
+                </div>
+              </div>
+
+              <!-- Import / Export training data -->
+              <div class="trainer-io-row">
+                <button id="exportTrainingBtn" class="btn btn-secondary" title="Export training data as JSON file">
+                  <i class="fa-solid fa-file-arrow-down"></i> Export Training
+                </button>
+                <button id="importTrainingBtn" class="btn btn-secondary" title="Import training data from JSON file">
+                  <i class="fa-solid fa-file-arrow-up"></i> Import Training
+                </button>
+                <!-- Hidden file input for import picker -->
+                <input type="file" id="importFileInput" accept=".json" style="display:none;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Sentence Panel — slides in below the training drawer -->
+          <div class="sentence-panel" id="sentencePanel">
+            <div class="sentence-panel-inner">
+              <div class="sentence-panel-header">
+                <span><i class="fa-solid fa-pen-to-square" style="color: var(--success);"></i> Sentence Mode</span>
+                <span class="sentence-mode-badge">LIVE</span>
+              </div>
+
+              <div class="sentence-body">
+                <!-- Left: circular arc countdown -->
+                <div class="sentence-arc-wrap">
+                  <svg class="sentence-arc" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="arc-track" cx="40" cy="40" r="34"/>
+                    <circle class="arc-fill" cx="40" cy="40" r="34" id="sentenceArcFill"/>
+                  </svg>
+                  <div class="sentence-arc-center">
+                    <span class="sentence-current-sign" id="sentenceCurrentSign">—</span>
+                  </div>
+                </div>
+
+                <!-- Right: sentence output -->
+                <div class="sentence-output">
+                  <div class="sentence-hint">Each 3-second window commits the dominant sign as a <strong>letter</strong>. Train a gesture named <code>SPACE</code> to insert a word space.</div>
+                  <div class="sentence-words" id="sentenceWords">
+                    <span class="sentence-placeholder">Your sentence will appear here...</span>
+                  </div>
+                  <div class="sentence-controls">
+                    <button id="sentenceSpeakBtn" class="btn btn-primary sentence-ctrl-btn" disabled>
+                      <i class="fa-solid fa-volume-high"></i> Speak
+                    </button>
+                    <button id="sentenceUndoBtn" class="btn btn-secondary sentence-ctrl-btn" disabled>
+                      <i class="fa-solid fa-delete-left"></i> Undo
+                    </button>
+                    <button id="sentenceClearBtn" class="btn btn-danger sentence-ctrl-btn" disabled>
+                      <i class="fa-solid fa-trash"></i> Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+          <div class="camera-info">
+            <span id="fpsCounter"><i class="fa-solid fa-gauge-high"></i> FPS: 0</span>
+            <span id="deviceStatus"><i class="fa-solid fa-circle-check"></i> Camera ready</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right side: Control and Speech Translation -->
+      <section class="sidebar-section">
+        <!-- Translation outputs -->
+        <div class="glass-card translation-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-language"></i> Translation output</h3>
+          </div>
+          
+          <div class="translation-outputs">
+            <!-- English output -->
+            <div class="output-box" id="englishOutputBox">
+              <div class="output-header">
+                <span class="lang-tag">English</span>
+                <button id="speakEnglishBtn" class="btn btn-primary btn-speak" disabled>
+                  <i class="fa-solid fa-volume-high"></i> Listen
+                </button>
+              </div>
+              <p class="translated-text" id="englishText">Recognized gestures will compile here...</p>
+            </div>
+
+            <!-- Hindi output -->
+            <div class="output-box" id="hindiOutputBox">
+              <div class="output-header">
+                <span class="lang-tag lang-hindi">हिंदी (Hindi)</span>
+                <button id="speakHindiBtn" class="btn btn-primary btn-speak lang-hindi" disabled>
+                  <i class="fa-solid fa-volume-high"></i> सुनें
+                </button>
+              </div>
+              <p class="translated-text lang-hindi" id="hindiText">पहचाने गए संकेत यहाँ अनुवादित होंगे...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls panel -->
+        <div class="glass-card controls-card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-sliders"></i> Voice &amp; Model settings</h3>
+          </div>
+          <div class="controls-grid">
+            <div class="control-group">
+              <label for="autoSpeakToggle" class="toggle-label">
+                <span><i class="fa-solid fa-bullhorn"></i> Auto-Speak Speech</span>
+                <input type="checkbox" id="autoSpeakToggle" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+            
+            <div class="control-group">
+              <label for="voiceSelect"><i class="fa-solid fa-microphone"></i> Language Preference</label>
+              <select id="voiceSelect" class="form-select">
+                <option value="both" selected>Speak Both (Eng &amp; Hindi)</option>
+                <option value="en">English Only</option>
+                <option value="hi">Hindi Only</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="minConfidenceRange">
+                <i class="fa-solid fa-percent"></i> Min Detection Confidence: <span id="confVal">50%</span>
+              </label>
+              <input type="range" id="minConfidenceRange" min="20" max="90" value="50" class="form-range">
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Powered by Google MediaPipe Web &amp; Web Speech API. Running locally and offline.</p>
+      <p style="margin-top:6px;">
+        <a href="/image-trainer.html" target="_blank" style="color:var(--purple-vivid);text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;opacity:0.85;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+          <i class="fa-solid fa-images"></i> Open Batch Image Trainer
+        </a>
+      </p>
+    </footer>
+  </div>
+
+  <!-- Load main app module -->
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

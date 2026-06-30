@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ishaare — Batch Image Trainer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #03020a;
+      --card: rgba(12, 8, 22, 0.7);
+      --purple: #a855f7;
+      --purple-dim: #7c3aed;
+      --purple-pale: rgba(168,85,247,0.12);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --text: #f4f0ff;
+      --text-2: #9d8ec4;
+      --text-3: #5a4d78;
+      --border: rgba(168,85,247,0.15);
+      --border-hi: rgba(168,85,247,0.35);
+      --r: 16px;
+      --ease: cubic-bezier(0.4,0,0.2,1);
+      --font-h: 'Outfit', sans-serif;
+      --font-b: 'Inter', sans-serif;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(168,85,247,0.3); border-radius:99px; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px 60px;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 10% 5%,  rgba(124,58,237,0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 90% 95%, rgba(168,85,247,0.12) 0%, transparent 70%);
+    }
+
+    .page { width:100%; max-width:900px; display:flex; flex-direction:column; gap:24px; }
+
+    /* Header */
+    header { text-align:center; padding-bottom:8px; }
+    header h1 {
+      font-family: var(--font-h);
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .accent {
+      background: linear-gradient(125deg, #7c3aed, #c084fc 60%, #e879f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 14px rgba(168,85,247,0.5));
+    }
+    header p { color: var(--text-2); font-size:0.9rem; margin-top:6px; }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border);
+      border-top-color: rgba(255,255,255,0.06);
+      border-radius: var(--r);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content:'';
+      position:absolute;
+      top:0; left:10%; right:10%;
+      height:1px;
+      background:linear-gradient(90deg,transparent,rgba(168,85,247,0.4),transparent);
+    }
+    .card-title {
+      font-family: var(--font-h);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title i { color: var(--purple); }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed var(--border-hi);
+      border-radius: 12px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s var(--ease);
+      background: rgba(168,85,247,0.03);
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--purple);
+      background: rgba(168,85,247,0.08);
+      box-shadow: 0 0 24px rgba(168,85,247,0.15);
+    }
+    .drop-zone input {
+      position:absolute; inset:0; width:100%; height:100%;
+      opacity:0; cursor:pointer;
+    }
+    .drop-icon { font-size:2.2rem; color:var(--purple); margin-bottom:12px; }
+    .drop-title { font-family:var(--font-h); font-size:1.1rem; font-weight:700; }
+    .drop-sub { color:var(--text-2); font-size:0.82rem; margin-top:6px; line-height:1.5; }
+    code {
+      background:rgba(168,85,247,0.15); color:#c084fc;
+      border:1px solid rgba(168,85,247,0.25);
+      padding:1px 6px; border-radius:4px; font-size:0.8rem;
+    }
+
+    /* Folder structure guide */
+    .structure-box {
+      background:rgba(0,0,0,0.4);
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:14px 18px;
+      font-family:monospace;
+      font-size:0.82rem;
+      color:var(--text-2);
+      line-height:1.8;
+    }
+    .structure-box .folder { color:#c084fc; }
+    .structure-box .file   { color:var(--text-2); }
+    .structure-box .label  { color:var(--success); font-weight:700; }
+
+    /* Detected files table */
+    .files-summary {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+      gap:10px;
+    }
+    .label-chip {
+      background:rgba(168,85,247,0.1);
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:10px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .label-chip .lc-name {
+      font-family:var(--font-h);
+      font-weight:700;
+      font-size:0.95rem;
+      color:var(--purple);
+    }
+    .label-chip .lc-count { font-size:0.75rem; color:var(--text-2); }
+
+    /* Progress */
+    .progress-wrap {
+      background:rgba(255,255,255,0.05);
+      border-radius:99px;
+      height:6px;
+      overflow:hidden;
+    }
+    .progress-bar {
+      height:100%;
+      background:linear-gradient(90deg, var(--purple-dim), var(--purple));
+      border-radius:99px;
+      transition:width 0.2s var(--ease);
+      box-shadow:0 0 8px rgba(168,85,247,0.5);
+    }
+    .progress-label { font-size:0.8rem; color:var(--text-2); }
+
+    /* Log */
+    .log-area {
+      background:rgba(0,0,0,0.35);
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:12px;
+      font-family:monospace;
+      font-size:0.78rem;
+      max-height:200px;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .log-ok    { color:var(--success); }
+    .log-warn  { color:var(--warning); }
+    .log-err   { color:var(--danger); }
+    .log-info  { color:var(--text-2); }
+
+    /* Result stats */
+    .stats-row {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+    }
+    .stat-box {
+      background:rgba(168,85,247,0.06);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:14px;
+      text-align:center;
+    }
+    .stat-num {
+      font-family:var(--font-h);
+      font-size:1.8rem;
+      font-weight:800;
+      color:var(--purple);
+    }
+    .stat-lbl { font-size:0.75rem; color:var(--text-2); margin-top:2px; }
+    .stat-box.success .stat-num { color:var(--success); }
+    .stat-box.warning .stat-num { color:var(--warning); }
+    .stat-box.danger  .stat-num { color:var(--danger); }
+
+    /* Buttons */
+    .btn {
+      font-family:var(--font-b);
+      font-size:0.85rem;
+      font-weight:600;
+      padding:10px 18px;
+      border-radius:10px;
+      border:none;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      transition:all 0.25s var(--ease);
+    }
+    .btn-primary {
+      background:linear-gradient(135deg,var(--purple-dim),var(--purple));
+      color:#fff;
+      box-shadow:0 4px 14px rgba(124,58,237,0.4);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform:translateY(-1px);
+      box-shadow:0 6px 20px rgba(124,58,237,0.55);
+    }
+    .btn-secondary {
+      background:rgba(255,255,255,0.05);
+      color:var(--text);
+      border:1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background:rgba(168,85,247,0.1);
+      border-color:var(--border-hi);
+    }
+    .btn:disabled { opacity:0.3; cursor:not-allowed; }
+    .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+
+    /* Preview canvas (hidden, used for processing) */
+    #processCanvas { display:none; }
+
+    /* Spinner */
+    .spinner-sm {
+      width:16px; height:16px;
+      border:2px solid rgba(255,255,255,0.2);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin 0.8s linear infinite;
+      display:inline-block;
+      flex-shrink:0;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <header>
+      <h1>Ishaare <span class="accent">Image Trainer</span></h1>
+      <p>Drop a folder of hand-sign photos → get a ready-to-import <code>training.json</code></p>
+    </header>
+
+    <!-- Step 1: Folder structure guide -->
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-folder-tree"></i> Folder Structure Required</div>
+      <p style="font-size:0.85rem;color:var(--text-2);line-height:1.6;">
+        Organise your photos into <strong>one sub-folder per label</strong>. The folder name becomes the gesture label. 
+        Any common image format works (JPG, PNG, WEBP).
+      </p>
+      <div class="structure-box">
+        <span class="folder">📁 my_signs/</span><br>
+        &nbsp;&nbsp;<span class="folder">📁 <span class="label">A</span>/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">🖼 photo1.jpg</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">🖼 photo2.jpg</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">🖼 …</span><br>
+        &nbsp;&nbsp;<span class="folder">📁 <span class="label">B</span>/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">🖼 photo1.jpg</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">🖼 …</span><br>
+        &nbsp;&nbsp;<span class="folder">📁 <span class="label">SPACE</span>/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">🖼 …</span>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-3);">
+        <i class="fa-solid fa-circle-info"></i>&nbsp;
+        5–20 photos per label is enough. More variety (different distances, angles, lighting) = better recognition.
+      </p>
+    </div>
+
+    <!-- Step 2: Drop zone -->
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-images"></i> Select Your Photos Folder</div>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="folderInput" multiple accept="image/*" webkitdirectory>
+        <div class="drop-icon"><i class="fa-solid fa-folder-open"></i></div>
+        <div class="drop-title">Click to select folder — or drag it here</div>
+        <div class="drop-sub">
+          Uses your browser's folder picker.<br>
+          Your images <strong>never leave your device</strong> — all processing is local.
+        </div>
+      </div>
+
+      <!-- Detected labels -->
+      <div id="detectedSection" class="hidden">
+        <p class="card-title" style="margin-bottom:10px;"><i class="fa-solid fa-tags"></i> Detected Labels</p>
+        <div class="files-summary" id="filesummary"></div>
+        <div class="btn-row" style="margin-top:4px;">
+          <button class="btn btn-primary" id="startBtn">
+            <i class="fa-solid fa-play"></i> Start Processing
+          </button>
+          <button class="btn btn-secondary" id="resetBtn">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Progress -->
+    <div class="card hidden" id="progressCard">
+      <div class="card-title"><i class="fa-solid fa-microchip"></i> Processing Images</div>
+      <div class="progress-label" id="progressLabel">Initializing MediaPipe…</div>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+      <div class="log-area" id="logArea"></div>
+    </div>
+
+    <!-- Step 4: Results -->
+    <div class="card hidden" id="resultsCard">
+      <div class="card-title"><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Processing Complete</div>
+      <div class="stats-row">
+        <div class="stat-box success">
+          <div class="stat-num" id="statFound">0</div>
+          <div class="stat-lbl">Hands Detected</div>
+        </div>
+        <div class="stat-box warning">
+          <div class="stat-num" id="statMissed">0</div>
+          <div class="stat-lbl">No Hand Found</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statLabels">0</div>
+          <div class="stat-lbl">Unique Labels</div>
+        </div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--text-2);line-height:1.5;" id="resultHint"></p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="downloadBtn">
+          <i class="fa-solid fa-file-arrow-down"></i> Download training.json
+        </button>
+        <button class="btn btn-secondary" id="mergeNote">
+          <i class="fa-solid fa-circle-info"></i> How to import
+        </button>
+      </div>
+      <div class="hidden" id="importInstructions" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:0.82rem;color:var(--text-2);line-height:1.7;">
+        <strong style="color:var(--text)">To import into Ishaare:</strong><br>
+        1. Open the main app and enable <strong>Training Mode</strong> (graduation cap button).<br>
+        2. Click <strong>Import Training</strong> and select the downloaded <code>training.json</code>.<br>
+        3. Or replace <code>public/training/default-training.json</code> to auto-load on startup.
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden canvas for image processing -->
+  <canvas id="processCanvas"></canvas>
+
+  <!-- MediaPipe via CDN -->
+  <script type="module">
+    import { HandLandmarker, FilesetResolver }
+      from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/+esm";
+
+    // ─── State ────────────────────────────────────────────────────────────────
+    let allFiles = [];          // [{label, file}, ...]
+    let landmarker = null;
+    let results = [];           // [{label, features}]
+    let missedFiles = [];       // [{label, filename}]
+
+    // ─── DOM ──────────────────────────────────────────────────────────────────
+    const folderInput       = document.getElementById("folderInput");
+    const dropZone          = document.getElementById("dropZone");
+    const detectedSection   = document.getElementById("detectedSection");
+    const fileSummary       = document.getElementById("filesummary");
+    const startBtn          = document.getElementById("startBtn");
+    const resetBtn          = document.getElementById("resetBtn");
+    const progressCard      = document.getElementById("progressCard");
+    const progressLabel     = document.getElementById("progressLabel");
+    const progressBar       = document.getElementById("progressBar");
+    const logArea           = document.getElementById("logArea");
+    const resultsCard       = document.getElementById("resultsCard");
+    const statFound         = document.getElementById("statFound");
+    const statMissed        = document.getElementById("statMissed");
+    const statLabels        = document.getElementById("statLabels");
+    const resultHint        = document.getElementById("resultHint");
+    const downloadBtn       = document.getElementById("downloadBtn");
+    const mergeNote         = document.getElementById("mergeNote");
+    const importInstructions= document.getElementById("importInstructions");
+    const canvas            = document.getElementById("processCanvas");
+    const ctx               = canvas.getContext("2d");
+
+    // ─── Feature Extraction (same algorithm as classifier.js) ─────────────────
+    function extractFeatures(landmarks, width, height) {
+      if (!landmarks || landmarks.length < 21) return null;
+      const pts = landmarks.map(p => ({
+        x: p.x * width,
+        y: p.y * height,
+        z: (p.z || 0) * width
+      }));
+      const wrist = pts[0];
+      const palmSize = Math.hypot(
+        pts[9].x - wrist.x,
+        pts[9].y - wrist.y,
+        pts[9].z - wrist.z
+      ) || 1.0;
+      const features = [];
+      for (let i = 1; i < 21; i++) {
+        features.push((pts[i].x - wrist.x) / palmSize);
+        features.push((pts[i].y - wrist.y) / palmSize);
+        features.push((pts[i].z - wrist.z) / palmSize);
+      }
+      return features;
+    }
+
+    // ─── File Input Handler ───────────────────────────────────────────────────
+    function handleFiles(fileList) {
+      const imageTypes = ["image/jpeg","image/png","image/webp","image/gif","image/bmp"];
+      allFiles = [];
+
+      for (const file of fileList) {
+        if (!imageTypes.includes(file.type)) continue;
+        // webkitRelativePath looks like "folderName/label/image.jpg"
+        // We want the direct parent folder as the label
+        const parts = (file.webkitRelativePath || file.name).split("/");
+        let label;
+        if (parts.length >= 2) {
+          // Second-to-last segment is the label subfolder
+          label = parts[parts.length - 2].trim().toUpperCase().replace(/\s+/g, "_");
+        } else {
+          // No subfolder — skip
+          continue;
+        }
+        if (label) allFiles.push({ label, file });
+      }
+
+      if (allFiles.length === 0) {
+        alert("No images found in sub-folders. Make sure your photos are inside labelled sub-folders.");
+        return;
+      }
+
+      // Group by label and render
+      const groups = {};
+      for (const { label } of allFiles) {
+        groups[label] = (groups[label] || 0) + 1;
+      }
+
+      fileSummary.innerHTML = Object.entries(groups).map(([label, count]) => `
+        <div class="label-chip">
+          <span class="lc-name">${label}</span>
+          <span class="lc-count">${count} image${count !== 1 ? "s" : ""}</span>
+        </div>
+      `).join("");
+
+      detectedSection.classList.remove("hidden");
+    }
+
+    folderInput.addEventListener("change", e => handleFiles(e.target.files));
+
+    // Drag-and-drop on the drop zone
+    dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault();
+      dropZone.classList.remove("drag-over");
+      handleFiles(e.dataTransfer.files);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      allFiles = []; results = []; missedFiles = [];
+      folderInput.value = "";
+      detectedSection.classList.add("hidden");
+      progressCard.classList.add("hidden");
+      resultsCard.classList.add("hidden");
+      fileSummary.innerHTML = "";
+      logArea.innerHTML = "";
+    });
+
+    mergeNote.addEventListener("click", () => {
+      importInstructions.classList.toggle("hidden");
+    });
+
+    // ─── Log Helper ───────────────────────────────────────────────────────────
+    function log(msg, type = "info") {
+      const div = document.createElement("div");
+      div.className = `log-${type}`;
+      div.textContent = msg;
+      logArea.appendChild(div);
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    // ─── MediaPipe Init ───────────────────────────────────────────────────────
+    async function initMediaPipe() {
+      log("Loading MediaPipe WASM runtime…", "info");
+      const vision = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
+      );
+      log("Downloading Hand Landmark model… (first run may take ~15s)", "info");
+      landmarker = await HandLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+          delegate: "GPU"
+        },
+        runningMode: "IMAGE",
+        numHands: 1,
+        minHandDetectionConfidence: 0.15,
+        minHandPresenceConfidence: 0.15
+      });
+      log("✓ MediaPipe ready.", "ok");
+    }
+
+    // ─── Process single image ─────────────────────────────────────────────────
+    function processImage(file, label) {
+      return new Promise(resolve => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          canvas.width  = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          img.src = ""; // aggressive GC
+
+          try {
+            const detection = landmarker.detect(canvas);
+            if (detection.landmarks && detection.landmarks.length > 0) {
+              const features = extractFeatures(
+                detection.landmarks[0],
+                canvas.width,   // canvas dims are already set above; img dims are 0 after img.src = ""
+                canvas.height
+              );
+              if (features) {
+                resolve({ success: true, label, features });
+              } else {
+                resolve({ success: false, label, filename: file.name, reason: "Feature extraction failed" });
+              }
+            } else {
+              resolve({ success: false, label, filename: file.name, reason: "No hand detected" });
+            }
+          } catch (err) {
+            resolve({ success: false, label, filename: file.name, reason: err.message });
+          }
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          img.src = ""; // aggressive GC
+          resolve({ success: false, label, filename: file.name, reason: "Could not load image" });
+        };
+        img.src = url;
+      });
+    }
+
+    // ─── Main Processing Loop ─────────────────────────────────────────────────
+    startBtn.addEventListener("click", async () => {
+      if (allFiles.length === 0) return;
+
+      startBtn.disabled = true;
+      results = [];
+      missedFiles = [];
+      logArea.innerHTML = "";
+      progressCard.classList.remove("hidden");
+      resultsCard.classList.add("hidden");
+
+      // Init MediaPipe
+      try {
+        progressLabel.textContent = "Loading MediaPipe…";
+        progressBar.style.width = "0%";
+        await initMediaPipe();
+      } catch (err) {
+        log(`✗ Failed to load MediaPipe: ${err.message}`, "err");
+        startBtn.disabled = false;
+        return;
+      }
+
+      // Process images one by one (sequential to avoid memory spikes)
+      const total = allFiles.length;
+      for (let i = 0; i < total; i++) {
+        const { label, file } = allFiles[i];
+        const pct = Math.round(((i + 1) / total) * 100);
+
+        progressLabel.textContent = `Processing ${i + 1} / ${total} — ${file.name}`;
+        progressBar.style.width = `${pct}%`;
+
+        const result = await processImage(file, label);
+
+        if (result.success) {
+          results.push({ label: result.label, features: result.features });
+          if (i % 10 === 0 || i === total - 1)
+            log(`✓ [${result.label}] ${file.name}`, "ok");
+        } else {
+          missedFiles.push(result);
+          log(`⚠ [${result.label}] ${file.name} — ${result.reason}`, "warn");
+        }
+
+        // Yield to keep UI responsive and allow GC to run (5ms)
+        await new Promise(r => setTimeout(r, 5));
+      }
+
+      progressLabel.textContent = "Done!";
+      progressBar.style.width = "100%";
+
+      // Show results
+      showResults();
+    });
+
+    // ─── Results & Download ───────────────────────────────────────────────────
+    function showResults() {
+      const labels = new Set(results.map(r => r.label));
+
+      statFound.textContent   = results.length;
+      statMissed.textContent  = missedFiles.length;
+      statLabels.textContent  = labels.size;
+
+      const missedPct = Math.round((missedFiles.length / allFiles.length) * 100);
+      resultHint.textContent = missedFiles.length === 0
+        ? `All ${allFiles.length} images had a detectable hand. Great dataset quality!`
+        : `${missedFiles.length} image${missedFiles.length !== 1 ? "s" : ""} (${missedPct}%) had no hand detected — these are skipped. `
+          + (missedPct > 30 ? "High miss rate: ensure hands are clearly visible and well-lit." : "That's normal for borderline shots.");
+
+      resultsCard.classList.remove("hidden");
+      downloadBtn.disabled = results.length === 0;
+    }
+
+    downloadBtn.addEventListener("click", () => {
+      const output = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        count: results.length,
+        source: "batch-image-trainer",
+        signs: results
+      };
+      const blob = new Blob([JSON.stringify(output, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "training.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  </script>
+</body>
+</html>
