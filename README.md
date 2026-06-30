@@ -27,7 +27,7 @@ It runs entirely on-device — no data is ever sent to a server.
 
 ## How It Works — Pipeline
 
-![Ishaare Pipeline Walkthrough](assets/pipeline.png)
+![Ishaare Pipeline Walkthrough](assets/pipeline.svg)
 
 The app runs a 5-stage real-time pipeline entirely in your browser:
 
