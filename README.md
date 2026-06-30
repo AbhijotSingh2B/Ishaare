@@ -1,5 +1,4 @@
 <h1 align="center">
-  <img src="assets/icon.png" width="80" alt="Ishaare Logo"/><br/>
   Ishaare — इशारे
 </h1>
 
@@ -27,7 +26,7 @@ It runs entirely on-device — no data is ever sent to a server.
 
 ## How It Works — Pipeline
 
-![Ishaare Pipeline Walkthrough](assets/pipeline.svg)
+![Ishaare Pipeline Walkthrough](public/assets/pipeline.svg)
 
 The app runs a 5-stage real-time pipeline entirely in your browser:
 
