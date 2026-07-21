@@ -7,6 +7,16 @@ export class CameraManager {
     this.stream = null;
     this.facingMode = 'user'; // 'user' for front-facing, 'environment' for back-facing
     this.videoElement = null;
+
+    // Automatically resume the camera if the app comes back from the background (iOS/Android)
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && this.videoElement) {
+        // If the stream was killed by the OS or the video is paused, restart it
+        if (!this.isActive() || this.videoElement.paused) {
+          this.start(this.videoElement).catch(e => console.error("Could not resume camera:", e));
+        }
+      }
+    });
   }
 
   /**
