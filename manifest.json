@@ -1,18 +1,42 @@
 {
-  "name": "Ishaare - Sign Language Converter",
+  "name": "Ishaare – Sign Language to Speech Converter",
   "short_name": "Ishaare",
-  "description": "Real-time sign language to spoken English and Hindi voice converter.",
+  "description": "Free real-time sign language recognition app. Convert ASL hand gestures into spoken English and Hindi using your camera. Runs 100% offline in your browser — no install required.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#090d16",
   "theme_color": "#0f172a",
   "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["accessibility", "education", "utilities", "communication"],
   "icons": [
     {
-      "src": "assets/icon.png",
+      "src": "favicon_io/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon_io/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "favicon_io/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Image Trainer",
+      "short_name": "Trainer",
+      "description": "Train new sign language gestures from images",
+      "url": "./image-trainer.html",
+      "icons": [{ "src": "favicon_io/android-chrome-192x192.png", "sizes": "192x192" }]
     }
   ]
 }

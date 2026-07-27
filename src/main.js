@@ -937,7 +937,147 @@ function registerServiceWorker() {
   }
 }
 
+/**
+ * Test Mode: Runs a full system diagnostic without initializing the camera.
+ * Checks browser APIs, TTS voices, settings, gesture library, and PWA status.
+ */
+function runTestMode() {
+  const modal = document.getElementById("testModeModal");
+  const container = document.getElementById("testModeResults");
+  modal.style.display = "block";
+  container.innerHTML = "";
+
+  const checks = [];
+
+  // ── Helper to create a result row ──────────────────────────────
+  function row(icon, label, status, detail = "") {
+    const ok = status === "ok";
+    const warn = status === "warn";
+    const color = ok ? "var(--success)" : warn ? "var(--warning)" : "var(--danger)";
+    const iconClass = ok ? "fa-circle-check" : warn ? "fa-triangle-exclamation" : "fa-circle-xmark";
+    return `
+      <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+        <i class="fa-solid ${iconClass}" style="color:${color};margin-top:2px;flex-shrink:0;"></i>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:var(--text-primary);font-size:0.88rem;">${label}</div>
+          ${detail ? `<div style="color:var(--text-muted);font-size:0.8rem;margin-top:3px;word-break:break-word;">${detail}</div>` : ""}
+        </div>
+        <i class="fa-solid ${icon}" style="color:var(--text-muted);flex-shrink:0;margin-top:2px;"></i>
+      </div>`;
+  }
+
+  // ── 1. Browser & Platform ──────────────────────────────────────
+  const ua = navigator.userAgent;
+  const platform = navigator.platform || "unknown";
+  const isSecure = window.isSecureContext;
+  checks.push(row("fa-globe", "Browser / Platform",
+    isSecure ? "ok" : "fail",
+    `${ua.substring(0, 80)}… | Secure context: ${isSecure ? "✓ Yes (HTTPS/localhost)" : "✗ No — camera will be blocked!"}`
+  ));
+
+  // ── 2. Camera API availability (not started, just checking) ────
+  const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  checks.push(row("fa-camera", "Camera API (getUserMedia)",
+    hasGetUserMedia ? "ok" : "fail",
+    hasGetUserMedia
+      ? "navigator.mediaDevices.getUserMedia is available"
+      : "Not available — camera cannot be started in this browser"
+  ));
+
+  // ── 3. Web Speech API ──────────────────────────────────────────
+  const hasSpeech = !!window.speechSynthesis;
+  let voiceDetail = "speechSynthesis not available in this browser";
+  if (hasSpeech) {
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.startsWith("en"));
+    const hiVoice = voices.find(v => v.lang.startsWith("hi"));
+    const voiceCount = voices.length;
+    voiceDetail = `${voiceCount} voice(s) loaded. English: ${enVoice ? enVoice.name : "⚠ none found"} | Hindi: ${hiVoice ? hiVoice.name : "⚠ none found"}`;
+    checks.push(row("fa-microphone", "Web Speech API (TTS)",
+      enVoice ? "ok" : "warn",
+      voiceDetail
+    ));
+  } else {
+    checks.push(row("fa-microphone", "Web Speech API (TTS)", "fail", voiceDetail));
+  }
+
+  // ── 4. Current Settings ────────────────────────────────────────
+  const autoSpeak = autoSpeakToggle.checked;
+  const voicePref = voiceSelect.value;
+  const confPct = Math.round(minConfidence * 100);
+  checks.push(row("fa-sliders", "Settings Snapshot", "ok",
+    `Auto-Speak: ${autoSpeak ? "ON" : "OFF"} | Language: ${voicePref} | Min Confidence: ${confPct}%`
+  ));
+
+  // ── 5. Gesture Library ─────────────────────────────────────────
+  const builtInGestures = classifier.listGestures ? classifier.listGestures() : [];
+  const customCount = classifier.customSigns ? classifier.customSigns.length : 0;
+  const gestureStatus = builtInGestures.length > 0 || customCount > 0 ? "ok" : "warn";
+  checks.push(row("fa-hand", "Gesture Library",
+    gestureStatus,
+    `Built-in (Fingerpose): ${builtInGestures.length > 0 ? builtInGestures.join(", ") : "loaded (definitions internal)"} | Custom (KNN): ${customCount} sign(s) trained`
+  ));
+
+  // ── 6. Translator ──────────────────────────────────────────────
+  let translatorOk = false;
+  let translatorDetail = "";
+  try {
+    const testResult = translator.translate("HELLO");
+    translatorOk = !!(testResult && testResult.en && testResult.hi);
+    translatorDetail = translatorOk
+      ? `Test: "HELLO" → EN: "${testResult.en}" | HI: "${testResult.hi}"`
+      : `translate("HELLO") returned unexpected result`;
+  } catch (e) {
+    translatorDetail = `Error: ${e.message}`;
+  }
+  checks.push(row("fa-language", "Sign Translator", translatorOk ? "ok" : "fail", translatorDetail));
+
+  // ── 7. Service Worker / PWA ────────────────────────────────────
+  const hasSW = "serviceWorker" in navigator;
+  navigator.serviceWorker?.getRegistration().then(reg => {
+    const swActive = !!(reg && reg.active);
+    container.insertAdjacentHTML("beforeend", row("fa-mobile-screen", "Service Worker / PWA Offline",
+      swActive ? "ok" : "warn",
+      swActive ? `Registered & active (scope: ${reg.scope})` : hasSW ? "Service worker not yet registered or still installing" : "Service workers not supported"
+    ));
+  });
+
+  // ── 8. IndexedDB / Storage (for training data persistence) ─────
+  const hasIDB = !!window.indexedDB;
+  checks.push(row("fa-database", "Storage (IndexedDB)",
+    hasIDB ? "ok" : "warn",
+    hasIDB ? "IndexedDB available — training data can be persisted" : "IndexedDB not available — training data will be lost on refresh"
+  ));
+
+  // ── 9. WebGL (needed for MediaPipe GPU inference) ──────────────
+  let webglStatus = "fail";
+  let webglDetail = "WebGL not available — MediaPipe will fall back to CPU";
+  try {
+    const testCanvas = document.createElement("canvas");
+    const gl = testCanvas.getContext("webgl2") || testCanvas.getContext("webgl");
+    if (gl) {
+      const renderer = gl.getParameter(gl.RENDERER);
+      webglStatus = "ok";
+      webglDetail = `WebGL available — Renderer: ${renderer}`;
+    }
+  } catch (e) { /* ignore */ }
+  checks.push(row("fa-microchip", "WebGL (GPU Inference)", webglStatus, webglDetail));
+
+  // ── Render all checks ──────────────────────────────────────────
+  container.innerHTML = checks.join("");
+}
+
 // Initial Bootstrapping
 setupEvents();
 renderTrainedSigns();
 initializeApp();
+
+// ── Test Mode wiring ─────────────────────────────────────────────
+document.getElementById("testModeBtn").addEventListener("click", runTestMode);
+document.getElementById("testModeClose").addEventListener("click", () => {
+  document.getElementById("testModeModal").style.display = "none";
+});
+document.getElementById("testModeModal").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.style.display = "none";
+});
+

@@ -1,0 +1,86 @@
+# Ishaare: Pitch Script
+
+> [!TIP]
+> **Stage Directions:** Speak slowly and clearly. Pause after every "Imagine" for at least 2 full seconds — let the silence do the work. Make direct eye contact with the judges. When switching speakers, step slightly forward to signal the handoff.
+
+---
+
+**[Jasnoor]**
+*(Pause. Take a breath. Then speak with quiet confidence.)*
+A very good morning, respected judges. I am Jasnoor Kamboj...
+
+**[Abhijot]**
+...and I am Abhijot Singh. 
+
+**[Jasnoor]**
+We are the founders of **Ishaare**, and together, we are on a mission to bridge a gap that millions of people fall into every single day. As we say: *"Ishaaro se shabad tak ka fasla."* — *The distance from gestures to words.*
+
+**[Abhijot]**
+*(Steps forward. Speaks slowly, making direct eye contact.)*
+
+Imagine... you are rushed to a hospital in tremendous pain. The doctor leans in and asks: "Where does it hurt?" 
+
+*(Pause.)*
+
+And you cannot answer. Not because you don't know — but because no one in that room speaks your language.
+
+Imagine sitting in a classroom, desperate to ask a question that could change everything for you. But your hand is raised in silence, and your teacher looks right past you.
+
+Imagine standing at a railway station, alone, watching train after train leave — because you simply cannot ask which one is yours.
+
+**[Jasnoor]**
+*(Voice steady, serious.)*
+
+This is not a hypothetical. This is Tuesday. This is every day, for over 63 million deaf and mute individuals in India alone.
+
+Sign language is their voice. It is rich, expressive, and complete. But the world has not learned to listen.
+
+Hiring an interpreter costs money most people don't have. And in emergencies — there is no time. The result is social isolation, dangerous misunderstandings, and a quiet, invisible loss of dignity.
+
+**[Abhijot]**
+*(Energy shifts — hopeful, proud.)*
+
+This is exactly where we step in. We built **Ishaare** — an AI-powered sign language converter that works right now, today.
+
+Using advanced Computer Vision and Machine Learning, Ishaare watches hand gestures through any standard webcam and instantly translates them into text and spoken audio — in real time.
+
+**[Jasnoor]**
+
+And what makes Ishaare truly powerful is how *accessible* it is. It runs entirely inside a web browser. No downloads. No app stores. No expensive hardware. Just a camera, and an internet connection.
+
+For users who want a dedicated experience, Ishaare is also available as a native Android application — installable directly on your phone. And with the right funding and partnerships, an iOS version is ready to follow.
+
+Our system is also adaptive. It can be custom-trained to recognise the specific signs used in any language, region, or community.
+
+**[Abhijot]**
+So, who does this help? 
+First and foremost, it grants deaf and mute individuals the independence they deserve. 
+But the impact goes much further. It makes classrooms inclusive for students and teachers. It allows hospitals and doctors to provide rapid, accurate care. It empowers banks, corporate offices, and customer support centers to serve every citizen with dignity and respect. 
+
+**[Jasnoor]**
+
+We are running a **B2B2C Freemium Model** — a model that puts people first, without sacrificing sustainability.
+
+For individuals: Ishaare is free. Because we refuse to put a price on someone's ability to be heard. Every user gets a generous **1,000-word translation limit per month** at no cost.
+
+For power users and professionals who need more, **affordable premium plans** unlock unlimited usage.
+
+And for institutions — hospitals, schools, government offices, corporate customer service centers — we offer **B2B Enterprise Subscriptions**. A customised, secure, always-on version of Ishaare embedded directly into their systems. One payment. Complete accessibility for every single visitor who walks through their doors.
+
+**[Abhijot]**
+*(Slow, deliberate. Let it land.)*
+
+At Ishaare, we hold one belief above everything else — that communication is not a feature. It is not a luxury. It is a fundamental human right.
+
+**[Jasnoor]**
+
+And as long as a single person is being silenced simply because the world doesn't understand their language — our work is not done.
+
+We are here to erase that silence.
+
+We are here to close that distance.
+
+**[Both, together]**
+*"Ishaaro Se... Shabad Tak Ka Fasla."*
+
+Thank you.
