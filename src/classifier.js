@@ -231,9 +231,12 @@ export class GestureClassifier {
 
   /**
    * Exports all custom signs as a downloadable .json file.
-   * The file is named signtalk-training-YYYY-MM-DD.json.
+   * Uses 3 strategies in order to handle Capacitor WebView limitations:
+   *  1. DOM-attached <a download> — works in desktop browsers & most WebViews
+   *  2. navigator.share() with a File — triggers Android/iOS native share sheet
+   *  3. Copy-to-clipboard modal — last resort so data can never be lost
    */
-  exportCustomSigns() {
+  async exportCustomSigns() {
     if (this.customSigns.length === 0) {
       alert("No custom signs to export. Record some signs first!");
       return;
@@ -246,16 +249,46 @@ export class GestureClassifier {
       signs: this.customSigns
     };
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const date = new Date().toISOString().slice(0, 10);
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob    = new Blob([jsonStr], { type: "application/json" });
+    const date    = new Date().toISOString().slice(0, 10);
+    const filename = `signtalk-training-${date}.json`;
 
-    const link = document.createElement("a");
-    link.href     = url;
-    link.download = `signtalk-training-${date}.json`;
-    link.click();
+    // ── Strategy 1: DOM-attached anchor (desktop browsers, most WebViews) ──
+    try {
+      const url  = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href     = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return; // success — stop here
+    } catch (_) { /* fall through to next strategy */ }
 
-    URL.revokeObjectURL(url);
+    // ── Strategy 2: navigator.share() — Android/iOS native share sheet ──
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: "application/json" })] })) {
+      try {
+        const file = new File([blob], filename, { type: "application/json" });
+        await navigator.share({ files: [file], title: "Ishaare Training Data", text: "Export your sign training data" });
+        return; // success — stop here
+      } catch (err) {
+        if (err.name !== "AbortError") { /* user didn't cancel — fall through */ } else { return; }
+      }
+    }
+
+    // ── Strategy 3: Copy-to-clipboard modal (guaranteed last resort) ──
+    const modal = document.getElementById("exportClipboardModal");
+    const textarea = document.getElementById("exportClipboardText");
+    if (modal && textarea) {
+      textarea.value = jsonStr;
+      modal.style.display = "flex";
+      textarea.select();
+    } else {
+      // Absolute fallback if modal isn't in the DOM yet
+      prompt("Copy this JSON and save it as a .json file:", jsonStr);
+    }
   }
 
   /**

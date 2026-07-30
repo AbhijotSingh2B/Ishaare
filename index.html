@@ -284,6 +284,26 @@
     </footer>
   </div>
 
+  <!-- Export Clipboard Fallback Modal -->
+  <div id="exportClipboardModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:80vh;display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="margin:0;color:#f1f5f9;font-size:1rem;"><i class="fa-solid fa-clipboard" style="color:#a78bfa;margin-right:8px;"></i>Copy Your Training Data</h3>
+        <button onclick="document.getElementById('exportClipboardModal').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer;padding:4px;">✕</button>
+      </div>
+      <p style="margin:0;color:#94a3b8;font-size:0.85rem;">Direct download isn't available on this device. Copy the JSON below and save it as <code style="color:#a78bfa;">signtalk-training.json</code> on your computer.</p>
+      <textarea id="exportClipboardText" readonly style="flex:1;min-height:200px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:12px;font-size:0.78rem;font-family:monospace;resize:vertical;"></textarea>
+      <button onclick="
+        const t = document.getElementById('exportClipboardText');
+        t.select();
+        navigator.clipboard.writeText(t.value).then(() => {
+          this.textContent = '✅ Copied!';
+          setTimeout(() => this.textContent = 'Copy to Clipboard', 2000);
+        }).catch(() => document.execCommand('copy'));
+      " style="background:#7c3aed;color:white;border:none;border-radius:8px;padding:12px;font-size:0.9rem;font-weight:600;cursor:pointer;">Copy to Clipboard</button>
+    </div>
+  </div>
+
   <!-- Load main app module -->
   <script type="module" src="src/main.js"></script>
 </body>
