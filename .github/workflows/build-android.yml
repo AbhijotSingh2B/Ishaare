@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "update-header-logo" ]
+    branches: [ "main", "update-header-logo", "android-app" ]
   workflow_dispatch:
 
 jobs:
