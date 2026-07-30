@@ -231,9 +231,14 @@ export class GestureClassifier {
 
   /**
    * Exports all custom signs as a downloadable .json file.
-   * The file is named signtalk-training-YYYY-MM-DD.json.
+   * The file is named ishaare-training-YYYY-MM-DD.json.
+   *
+   * Strategy (tried in order):
+   *  1. DOM-attached <a download> — works in desktop browsers & most WebViews
+   *  2. navigator.share() with a File — works on Android / iOS Capacitor (share sheet → Save to Files)
+   *  3. Copy-to-clipboard modal — absolute fallback so data is NEVER lost
    */
-  exportCustomSigns() {
+  async exportCustomSigns() {
     if (this.customSigns.length === 0) {
       alert("No custom signs to export. Record some signs first!");
       return;
@@ -246,16 +251,152 @@ export class GestureClassifier {
       signs: this.customSigns
     };
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const date = new Date().toISOString().slice(0, 10);
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const date     = new Date().toISOString().slice(0, 10);
+    const fileName = `ishaare-training-${date}.json`;
+    const blob     = new Blob([jsonStr], { type: "application/json" });
 
-    const link = document.createElement("a");
-    link.href     = url;
-    link.download = `signtalk-training-${date}.json`;
-    link.click();
+    // ── Strategy 1: standard DOM-attached anchor download ─────────────────
+    try {
+      const url  = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href     = url;
+      link.download = fileName;
+      // Must be in the DOM for Firefox, Capacitor WebView, etc.
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      // Give the browser a moment to start the download before revoking
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      return; // success — done
+    } catch (_) {
+      // fall through to next strategy
+    }
 
-    URL.revokeObjectURL(url);
+    // ── Strategy 2: Web Share API (native Android / iOS share sheet) ──────
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: "application/json" })] })) {
+      try {
+        await navigator.share({
+          files: [new File([blob], fileName, { type: "application/json" })],
+          title: "Ishaare Training Data",
+          text: `Training data (${this.customSigns.length} signs) — ${date}`
+        });
+        return; // user handled it via native share sheet
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          // AbortError = user cancelled, not a real failure — fall through
+          console.warn("[Ishaare] navigator.share failed:", err);
+        } else {
+          return; // user deliberately cancelled — don't show the modal
+        }
+      }
+    }
+
+    // ── Strategy 3: copy-to-clipboard modal (absolute last resort) ────────
+    this._showExportFallbackModal(jsonStr, fileName);
+  }
+
+  /**
+   * Shows a modal with the full JSON so the user can copy it manually.
+   * This fires only when both download and share have failed.
+   */
+  _showExportFallbackModal(jsonStr, fileName) {
+    // Remove any previous instance
+    const old = document.getElementById("exportFallbackModal");
+    if (old) old.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "exportFallbackModal";
+    overlay.style.cssText = [
+      "position:fixed", "inset:0", "z-index:99999",
+      "background:rgba(0,0,0,0.80)", "backdrop-filter:blur(8px)",
+      "display:flex", "align-items:center", "justify-content:center",
+      "padding:20px", "box-sizing:border-box"
+    ].join(";");
+
+    overlay.innerHTML = `
+      <div style="
+        background:var(--surface-2,#1e1b2e);
+        border:1px solid rgba(168,85,247,0.35);
+        border-radius:16px;
+        padding:24px;
+        max-width:560px;
+        width:100%;
+        font-family:var(--font-ui,'Inter',sans-serif);
+        box-sizing:border-box;
+      ">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <h3 style="margin:0;font-size:1.1rem;color:var(--text-primary,#fff);display:flex;align-items:center;gap:8px;">
+            <i class="fa-solid fa-file-code" style="color:#a855f7;"></i>
+            Export Training Data
+          </h3>
+          <button id="exportModalClose" style="
+            background:none;border:none;color:var(--text-muted,#aaa);
+            font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:6px;
+          "><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <p style="margin:0 0 10px;font-size:0.85rem;color:var(--text-muted,#aaa);line-height:1.5;">
+          Automatic download isn't available in this environment.<br>
+          <strong style="color:var(--text-primary,#fff);">Copy the JSON below</strong> and save it as
+          <code style="background:rgba(168,85,247,0.15);padding:1px 5px;border-radius:4px;font-size:0.8rem;">${fileName}</code>
+        </p>
+
+        <textarea id="exportModalText" readonly style="
+          width:100%;height:180px;background:rgba(0,0,0,0.35);
+          color:#e0e0e0;border:1px solid rgba(255,255,255,0.1);
+          border-radius:8px;padding:10px;font-size:0.72rem;
+          font-family:monospace;resize:vertical;box-sizing:border-box;
+          line-height:1.4;
+        ">${jsonStr.replace(/</g, "&lt;")}</textarea>
+
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+          <button id="exportModalCopy" style="
+            flex:1;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;
+            background:linear-gradient(135deg,#7c3aed,#a855f7);
+            color:#fff;font-weight:600;font-size:0.9rem;
+            display:flex;align-items:center;justify-content:center;gap:6px;
+          ">
+            <i class="fa-solid fa-copy"></i> Copy to Clipboard
+          </button>
+          <button id="exportModalClose2" style="
+            flex:1;padding:10px 16px;border:1px solid rgba(255,255,255,0.15);
+            border-radius:8px;cursor:pointer;background:transparent;
+            color:var(--text-muted,#aaa);font-size:0.9rem;
+          ">Close</button>
+        </div>
+        <p id="exportModalCopied" style="
+          display:none;margin:8px 0 0;text-align:center;
+          color:#4ade80;font-size:0.82rem;font-weight:600;
+        "><i class="fa-solid fa-circle-check"></i> Copied! Paste into a .json file.</p>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Auto-select text in textarea
+    const ta = overlay.querySelector("#exportModalText");
+    setTimeout(() => { ta.focus(); ta.select(); }, 100);
+
+    // Copy button
+    overlay.querySelector("#exportModalCopy").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(jsonStr);
+      } catch (_) {
+        // fallback for older WebViews
+        ta.select();
+        document.execCommand("copy");
+      }
+      const msg = overlay.querySelector("#exportModalCopied");
+      msg.style.display = "block";
+      setTimeout(() => { msg.style.display = "none"; }, 3000);
+    });
+
+    // Close buttons
+    const closeModal = () => overlay.remove();
+    overlay.querySelector("#exportModalClose").addEventListener("click", closeModal);
+    overlay.querySelector("#exportModalClose2").addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
   }
 
   /**
