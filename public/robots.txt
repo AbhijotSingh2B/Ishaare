@@ -1,0 +1,9 @@
+# robots.txt for Ishaare
+# https://ishaare-se-shabad.vercel.app/
+
+# Allow all search engine crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://ishaare-se-shabad.vercel.app/sitemap.xml

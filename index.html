@@ -1,21 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ishaare - Ishaaro se shabad tak ka fasla</title>
-  
-  <!-- Google Fonts: Outfit for heading, Inter for UI text -->
+
+  <!-- ═══════════════════════════════════════════════
+       PRIMARY SEO META TAGS
+  ═══════════════════════════════════════════════ -->
+  <title>Ishaare – Real-Time Sign Language to Speech Converter | ASL to English & Hindi</title>
+  <meta name="description" content="Ishaare is a free, offline sign language recognition web app. Use your camera to convert ASL hand gestures into spoken English and Hindi in real time — no install required. Powered by Google MediaPipe.">
+  <meta name="keywords" content="sign language converter, ASL to text, sign language recognition, hand gesture recognition, sign language to speech, ISL recognition, free sign language translator, ASL alphabet online, offline sign language app, sign language PWA, MediaPipe hand tracking, accessibility app, deaf communication tool, sign language to Hindi, Indian sign language">
+  <meta name="author" content="Ishaare">
+  <meta name="robots" content="index, follow">
+  <meta name="google-site-verification" content="otMrn3MBiPyqE9LAQCQE095XG8wOmHRSdcuNuyl8-0I" />
+  <meta name="language" content="English">
+  <meta name="revisit-after" content="7 days">
+  <meta name="category" content="Accessibility, Education, Communication">
+  <link rel="canonical" href="https://ishaare-se-shabad.vercel.app/">
+
+  <!-- ═══════════════════════════════════════════════
+       OPEN GRAPH (Facebook, LinkedIn, WhatsApp, etc.)
+  ═══════════════════════════════════════════════ -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ishaare-se-shabad.vercel.app/">
+  <meta property="og:title" content="Ishaare – Real-Time Sign Language to Speech Converter">
+  <meta property="og:description" content="Free web app that converts sign language hand gestures into spoken English and Hindi using your camera. Works offline, no install needed. Powered by Google MediaPipe.">
+  <meta property="og:image" content="https://ishaare-se-shabad.vercel.app/favicon_io/android-chrome-512x512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="Ishaare — Sign Language to Speech Converter">
+  <meta property="og:site_name" content="Ishaare">
+  <meta property="og:locale" content="en_US">
+
+  <!-- ═══════════════════════════════════════════════
+       TWITTER / X CARD
+  ═══════════════════════════════════════════════ -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://ishaare-se-shabad.vercel.app/">
+  <meta name="twitter:title" content="Ishaare – Real-Time Sign Language to Speech Converter">
+  <meta name="twitter:description" content="Free browser app: point your camera at ASL hand signs, get spoken English & Hindi output instantly. Offline, private, no account needed.">
+  <meta name="twitter:image" content="https://ishaare-se-shabad.vercel.app/favicon_io/android-chrome-512x512.png">
+  <meta name="twitter:image:alt" content="Ishaare sign language web app">
+
+  <!-- ═══════════════════════════════════════════════
+       JSON-LD STRUCTURED DATA (Google Rich Results)
+  ═══════════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Ishaare – Sign Language to Speech Converter",
+    "url": "https://ishaare-se-shabad.vercel.app/",
+    "description": "Free real-time sign language recognition web app. Converts ASL hand gestures into spoken English and Hindi using your camera. Runs entirely offline in the browser.",
+    "applicationCategory": "AccessibilityApplication",
+    "applicationSubCategory": "Communication",
+    "operatingSystem": "Any (Web Browser)",
+    "browserRequirements": "Requires a browser with WebRTC camera support (Chrome, Edge, Firefox, Safari)",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Real-time ASL hand gesture recognition",
+      "Sign language to English text and speech",
+      "Sign language to Hindi text and speech",
+      "A–Z ASL alphabet recognition",
+      "Custom sign training with KNN classifier",
+      "Works offline as a Progressive Web App (PWA)",
+      "Mobile-friendly and installable",
+      "Batch image-based sign trainer",
+      "No data sent to server — 100% private"
+    ],
+    "screenshot": "https://ishaare-se-shabad.vercel.app/favicon_io/android-chrome-512x512.png",
+    "softwareVersion": "1.0",
+    "inLanguage": ["en", "hi"],
+    "isAccessibleForFree": true,
+    "keywords": "sign language converter, ASL recognition, hand gesture to speech, accessibility app, MediaPipe",
+    "audience": {
+      "@type": "Audience",
+      "audienceType": "deaf community, accessibility users, ASL learners, sign language students"
+    },
+    "creator": {
+      "@type": "Organization",
+      "name": "Ishaare"
+    }
+  }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       FAVICONS & PWA
+  ═══════════════════════════════════════════════ -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ishaare">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- ═══════════════════════════════════════════════
+       FONTS & ICONS
+  ═══════════════════════════════════════════════ -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f172a">
 </head>
 <body>
   <!-- Model Download Toast (Global) -->
@@ -32,9 +126,9 @@
     <header class="app-header">
       <div class="logo-area">
         <div class="pulse-indicator status-idle" id="statusIndicator"></div>
-        <h1>Ishaare</h1>
+        <img src="favicon_io/android-chrome-512x512.png" alt="Ishaare" style="height: 160px; width: auto; margin: -40px 0; border-radius: 8px;">
       </div>
-      <p class="subtitle">Ishaaro se shabad tak ka fasla</p>
+      <p class="subtitle" style="margin-top: -15px;">Ishaaro se shabad tak ka fasla</p>
     </header>
 
     <main class="app-content">
@@ -276,12 +370,30 @@
 
     <footer class="app-footer">
       <p>Powered by Google MediaPipe Web &amp; Web Speech API. Running locally and offline.</p>
-      <p style="margin-top:6px;">
+      <p style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;">
         <a href="/image-trainer.html" target="_blank" style="color:var(--purple-vivid);text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;opacity:0.85;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
           <i class="fa-solid fa-images"></i> Open Batch Image Trainer
         </a>
+        <button id="testModeBtn" style="background:none;border:1px solid rgba(168,85,247,0.4);color:var(--purple-vivid);font-family:var(--font-ui);font-size:0.82rem;font-weight:600;padding:4px 12px;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;opacity:0.85;transition:all 0.2s;" onmouseover="this.style.opacity='1';this.style.borderColor='var(--purple-vivid)'" onmouseout="this.style.opacity='0.85';this.style.borderColor='rgba(168,85,247,0.4)'">
+          <i class="fa-solid fa-flask"></i> Test Mode
+        </button>
       </p>
     </footer>
+
+    <!-- Test Mode Diagnostic Modal -->
+    <div id="testModeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:9999;overflow-y:auto;padding:24px;">
+      <div style="max-width:640px;margin:0 auto;background:var(--surface-2);border:1px solid rgba(168,85,247,0.25);border-radius:16px;padding:28px;font-family:var(--font-ui);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <h2 style="font-family:var(--font-heading);font-size:1.3rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:10px;">
+            <i class="fa-solid fa-flask" style="color:var(--purple-vivid);"></i> System Diagnostic
+          </h2>
+          <button id="testModeClose" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:6px;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div id="testModeResults" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Load main app module -->

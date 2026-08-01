@@ -3,14 +3,21 @@
 </h1>
 
 <p align="center">
-  <strong>Real-time sign language to spoken English &amp; Hindi voice converter</strong><br/>
-  Powered by MediaPipe, Fingerpose, and the Web Speech API
+  <strong>Free real-time sign language to speech converter — ASL hand gestures to spoken English &amp; Hindi</strong><br/>
+  Works offline in your browser. No install needed. Powered by Google MediaPipe.
+</p>
+
+<p align="center">
+  <a href="https://ishaare-se-shabad.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-ishaare--se--shabad.vercel.app-6366f1?style=for-the-badge" alt="Live Demo"/>
+  </a>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Built%20With-MediaPipe-blue?style=flat-square&logo=google" alt="MediaPipe"/>
   <img src="https://img.shields.io/badge/Framework-Vite%205-646CFF?style=flat-square&logo=vite" alt="Vite"/>
   <img src="https://img.shields.io/badge/PWA-Ready-brightgreen?style=flat-square&logo=pwa" alt="PWA"/>
+  <img src="https://img.shields.io/badge/Offline-100%25-success?style=flat-square" alt="100% Offline"/>
   <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT License"/>
 </p>
 
@@ -190,4 +197,14 @@ MIT - see [LICENSE](LICENSE) for details.
 
 ---
 
-Made with love for accessible communication.
+Made with ❤️ for accessible communication — bridging the gap between sign language and spoken word.
+
+---
+
+## GitHub Topics
+
+> Add these topics to your GitHub repository for better discoverability:
+> `sign-language` · `asl` · `accessibility` · `mediapipe` · `pwa` · `speech-recognition` · `hindi` · `hand-gesture-recognition` · `web-app` · `offline-first` · `fingerpose` · `real-time` · `deaf` · `communication`
+
+*(Go to your repo → ⚙️ Settings / About gear icon → Topics → paste the tags above)*
+
